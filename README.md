@@ -1,58 +1,12 @@
-# แผนการสอนโครงงานควอดคอปเตอร์ (มุ่งเน้นวิศวกรรมไฟฟ้า)
-ฐานโค้ด: ใช้โค้ดของ Joop Brokking เป็นจุดเริ่มต้นและพอร์ตไปยัง STM32F103
+# Flight Controller Development Plan (Semester 1)
 
-## ภาพรวม
-- ระยะเวลา: 2 ภาคการศึกษา ภาคละ 15 สัปดาห์ (จัดกลุ่มหัวข้อเป็นช่วงละ 2 สัปดาห์)
-- เป้าหมาย: ออกแบบและสร้าง Flight Controller ด้วย STM32F103 (PCB + ประกอบ SMD), เชื่อมต่อเซนเซอร์, บินได้อย่างเสถียรในโหมด Attitude, Altitude Hold, Position Hold และ Waypoint
-- โฟกัสสายไฟฟ้า: Power/Signal Integrity, EMI/EMC, DFM/DFA, Real-time Firmware, Estimation/Control, ความปลอดภัยและวินัยการทดสอบ
-
----
-
-## ภาคการศึกษาที่ 1 — ฮาร์ดแวร์ อินเทอร์เฟซ PCB ประกอบ และ Bring-Up
-
-| สัปดาห์ | หัวข้อ (บทเรียน & แลป) | โฟกัสวิศวกรรมไฟฟ้า | ผลส่งมอบหลัก |
-|---|---|---|---|
-| 1–2 | เปิดโครงการ, ความปลอดภัย (LiPo/ถอดใบพัด/ESD), กำหนดคุณลักษณะ (AUW, Thrust/Weight, ระยะเวลาบิน, Geofence); แนะนำสถาปัตยกรรม STM32F103 และตั้งค่า Toolchain | งบพลังงานและการ Derating, โครงสร้าง Clock, การ Decoupling, วินัยเวอร์ชันโค้ด | Project charter, BOM เบื้องต้น, Risk register, โปรเจค STM32 ขั้นต่ำ+มาตรฐานการเขียนโค้ด |
-| 3–4 | เพาเวอร์อิเล็กทรอนิกส์: โมเดลแบต, แรงดันตก, LC Filter, TVS, Brownout; อินเทอร์เฟซ I2C/SPI, Pull-up, ความจุบัส; อ่าน IMU/Baro บนบอร์ดพัฒนา | การวัดด้วยออสซิลโลสโคป/ลอจิกอะนาไลเซอร์, Signal Integrity บนบัส, เส้นทางกราวด์ | สเก็ตช์เพาเวอร์ทรี + เลือกชิ้นส่วน, ล็อก WHO_AM_I และ Raw data, บันทึก SI พร้อมแคปเจอร์สัญญาณ |
-| 5–6 | ทบทวนโค้ด Joop: Complementary Filter, PID, Mixer, RC Parsing; ออกแบบสเกแมติก FC v1 (MCU, SWD, Regulator, IMU/Baro, Mag, GPS UART, RC In, ESC Out, จุดทดสอบ) | แยกส่วน Math/Control ออกจาก I/O; การจัดเก็บคาลิเบรชัน; DFM/DFA ในสเกแมติก | แผนการพอร์ต, ยูนิตเทสต์สำหรับ Filter/PID/Mixer, สเกแมติกสมบูรณ์ผ่าน ERC |
-| 7–8 | วางเลย์เอาต์ PCB เพื่อ EMI/EMC: ระนาบกราวด์/เส้นทางคืนกระแส, ตำแหน่ง Decoupling, ช่องระบาย Baro, การลาก Crystal, Keepout ใต้ IMU, Via Stitching; สร้างเฟรมเวิร์คเวลาในเฟิร์มแวร์ (Scheduler, Watchdog) | วิเคราะห์ Return Path, จัดงบเวลาและ Jitter ด้วย GPIO Marker | ส่ง Gerber/BOM/Pos เพื่อผลิต, รายงานเวลา/จิตเตอร์ (CSV) |
-| 9–10 | ฝึกประกอบ SMD (สเตนซิล/โปรไฟล์รีโฟลว์/ตรวจสอบ/รีเวิร์ก); ประกอบ FC v1 และตรวจสอบไฟฟ้า (แรงดันราง, กระแส, Clock, SWD) | เกณฑ์ตรวจแบบ IPC-lite, การจ่ายไฟเริ่มต้นแบบควบคุม, ตรวจ Inrush/ลัดวงจร | บอร์ดฝึกผ่าน, FC v1 ผ่าน Smoke test, ยืนยันรางไฟ/Clock/SWD |
-| 11–12 | Bring-up อุปกรณ์ต่อพ่วงและเซนเซอร์ (I2C Scan, SPI Loopback, สตรีม IMU/Baro, คาลิเบรชัน); อินเทอร์เฟซมอเตอร์/ESC (PWM หรือ DShot), แท่นทดสอบ | ลักษณะ Noise Floor, บรรเทา Sag/EMI, จัดสรรช่อง Timer อย่างถูกต้อง | ล็อกคาลิเบรตและรายงานสัญญาณรบกวน, ทดสอบไล่รอบมอเตอร์อย่างปลอดภัย, ข้อมูลกระแส/แรงดันตก |
-| 13–14 | ผสาน Estimator และ Rate Loop ของ Joop บน FC v1; ปรับ Complementary Filter; ออกแบบตรรกะ Arming, Failsafe (สัญญาณขาด, แบตอ่อน), Watchdog | โพรไฟล์ความถี่ลูปและจิตเตอร์; สถานะเครื่องพร้อมบินบนพื้น (ถอดใบพัด) | ทดสอบครบลำดับ Sensor→Estimator→Rate→Mixer บนพื้น, ผ่านเงื่อนไข Arming/Failsafe |
-| 15 | การทวนสอบแบบออกแบบเพื่อความพร้อมบิน; แผนสำรอง (บอร์ด v1.1/v2 หากจำเป็น) | DFM/DFA, Margin ด้าน PI/SI, การบริหารความเสี่ยง, แผนทดสอบ | สไลด์รีวิว, รายการแก้ไข, มติ Go/No-Go |
-
----
-
-## ภาคการศึกษาที่ 2 — ควบคุม ระดับความสูง/ตำแหน่ง GPS/เส้นทาง จูน และทดสอบบิน
-
-| สัปดาห์ | หัวข้อ (บทเรียน & แลป) | โฟกัสวิศวกรรมไฟฟ้า | ผลส่งมอบหลัก |
-|---|---|---|---|
-| 1–2 | ปรับปรุง Estimation: เปรียบเทียบ Complementary vs Mahony/Madgwick, ตัวเลือก Magnetometer, Euler vs Quaternion; ออกแบบ/จูนลูปท่าทางและอัตรา (บนโต๊ะ) | รักษา Timing แบบ Deterministic; อินเทอร์เฟซจูนผ่าน CLI | กราฟยืนยัน Estimator; ลูปอัตราเสถียร (ทดสอบ Step/Sine) |
-| 3–4 | ลดการสั่นสะเทือน: ถ่วงสมดุลใบพัด/มอเตอร์, ยางรอง; ออกแบบ LPF/Notch สำหรับไจโร; เทสต์บินลอยครั้งแรก (มีเชือก/กรง) จูน Rate P/D | วิเคราะห์ PSD หา Blade-passing Frequency; ตรวจทิศ/ลำดับมอเตอร์และ Mixer | รายงานการสั่นและค่าฟิลเตอร์; ลอยนิ่งโหมด Attitude พร้อมล็อก |
-| 5–6 | ระดับความสูงและ AltHold: ฟิลเตอร์บาโร (Median+IIR), ความเร็วดิ่ง (Baro+Accel), Linearization แรงยก; GPS/เข็มทิศ: พาร์ส UART (UBX/NMEA), Gating ตาม Fix/HDOP, คาลิเบรต Mag | การรวมสัญญาณและ Gating ก่อนเปิดโหมด; ตรวจสุขภาพเซนเซอร์ | AltHold อยู่ในช่วงเป้าหมาย; ท่อข้อมูล GPS/Heading ผ่านเกณฑ์ |
-| 7–8 | การประมาณตำแหน่ง/ถือที่: XY จาก GPS, Z จาก Baro; Anti-windup, Rate Limit, Deadband; นำทางตามจุดทาง (ENU, L1/Vector Pursuit), RTL เบื้องต้น | ขีดจำกัดความปลอดภัย (มุม/ความเร็ว/ความสูง), เงื่อนไขยกเลิกภารกิจ/เขตรั้ว | PosHold ในรัศมีจำกัด; มิชชัน 3–5 Waypoints ที่ความเร็ว/ความสูงต่ำ |
-| 9–10 | ความทนทาน: Failsafe (ขาดสัญญาณ RC/GPS, แบตต่ำ), RTL/Land, Geofence; ความน่าเชื่อถือด้านพลังงาน/ความร้อน (Regulator/ESC) | เมทริกซ์การทดสอบ; วัดอุณหภูมิด้วย IR/เทอร์โมคัปเปิล; ตรวจ EMI เมื่อใช้งานวิทยุ/GPS พร้อมกัน | ผลทดสอบ Failsafe; รายงานความเชื่อถือได้และแนวทางแก้ |
-| 11–12 | คุณภาพโค้ดและเพิ่มประสิทธิภาพ: DMA อ่านเซนเซอร์, ลำดับความสำคัญ Interrupt, Blackbox ลง SPI Flash/SD; การตรวจสอบประสิทธิภาพทุกโหมดและสภาพแวดล้อม | Loop Timing คงที่ภายใต้โหลดล็อก; เฮดรูม CPU/หน่วยความจำ | เฟิร์มแวร์ปรับแต่งแล้ว; รายงานตัวชี้วัด (RMS ตำแหน่ง/ความสูง, เวลาเข้าที่) |
-| 13–14 | เอกสารและแพ็กการผลิต: สเกแมติก, BOM (มีอะไหล่ทดแทน), Gerber, แผ่นงานประกอบ; ซ้อมเดโมสุดท้าย, เช็กลิสต์/การ์ดทดสอบ | คู่มือคาลิเบรชัน/ผู้ใช้, เช็คลิสต์บำรุงรักษา, การทำให้ทำซ้ำได้ | ชุดเอกสารออกเผยแพร่; เครื่องพร้อมเดโม |
-| 15 | สาธิตบินจริง, ประเมินผล, สรุปบทเรียนและปิดโครงการ | ตัวชี้วัดการบินเทียบเป้าหมาย; จัดเก็บรีโประยะยาว (Tags/Releases) | วิดีโอเดโม, รายงานสุดท้าย, บันทึกถอดบทเรียน, รีโปจัดระเบียน |
-
----
-
-## แนวทางผสานโค้ด Joop Brokking
-- ช่วงต้นภาค 1: แยกและทดสอบหน่วย (Complementary Filter, PID, Mixer) ให้ไม่ผูกกับฮาร์ดแวร์
-- กลางภาค 1: พอร์ต I2C/SPI/UART, Timer, RC Input บน STM32; คุม Timing/Log จิตเตอร์
-- ภาค 2: เพิ่ม AltHold (รวม Baro), GPS Gating, Failsafe, CLI จูน, (ทางเลือก) Mag; ย้าย I/O แบบบล็อกไป DMA/Interrupt; เพิ่ม Blackbox Logging
-
----
-
-## เกณฑ์ประเมิน (ข้อเสนอ)
-- คุณภาพงานฮาร์ดแวร์ (สเกแมติก/เลย์เอาต์, PI/SI/EMI, DFM/DFA): 25%
-- สถาปัตยกรรมเฟิร์มแวร์และความถูกต้องของเวลาจริง: 20%
-- การติดตั้งและจูน Estimation/Control: 20%
-- ความปลอดภัยและความน่าเชื่อถือของระบบ (Failsafe, วินัยการทดสอบ): 15%
-- สมรรถนะการบินในโหมดต่างๆ: 10%
-- เอกสารและความเป็นมืออาชีพ (Logs, เช็กลิสต์, สุขอนามัยรีโป): 10%
-
----
-
-## โครงสร้างรีโพสิทอรี (แนะนำ)
+| Weeks | Objectives | Topics | Labs | Deliverables |
+|-------|------------|--------|------|--------------|
+| **1–2**: Kickoff, Requirements, and Safety | - Define mission profile<br>- Establish development environment<br>- Safety practices | **Mission profile**: Frame size, prop/motor/ESC selection; flight time & payload; MTOW<br>**EE focus**: Power/energy constraints<br>**Safety**: LiPo handling, Prop-off bench, Tethered tests, Range discipline<br>**Tooling setup**: Arduino–STM32, ST-LINK, HAL-lite mindset (timers, I2C/SPI, interrupts) | - LED blink<br>- SysTick timing markers<br>- UART printf over USB/serial | - Project charter<br>- System block diagram<br>- Risk register |
+| **3–4**: Energy Budgeting and Power Tree | - Build quantitative energy model<br>- Draft power distribution design<br>- Start sensor I/O | **Energy modeling**: Battery Wh, hover vs maneuver draw, Flight-time<br>**Power tree**: Battery→ESCs, 5V→3.3V conversion, LC/TVS/EMI, grounding<br>**Measurement**: Current/voltage sensors (INA219/226, shunt/Hall)<br>**Sensor I/O**: IMU & baro basics, pull-ups, bus integrity, shielding | - Minimal Arduino drivers<br>- WHO_AM_I and burst reads<br>- Log raw gyro/accel/baro | - Energy budget spreadsheet<br>- Preliminary power schematic<br>- Sensor read demo + raw data |
+| **5–6**: PCB Design — Power & MCU Core | - Capture schematics<br>- Validate ESC/motor interfacing | **Schematic**: STM32F103, clocking, SWD, decoupling, reset<br>**Power**: DC-DC rules, rails, thermal, returns<br>**EMI/surge**: LC input, TVS, analog/digital isolation<br>**Actuation**: ESC bench, throttle ramps, failsafe | - Motor/ESC tests (props off)<br>- PWM/timer timing | - Draft schematics (MCU+power)<br>- Library footprints<br>- ESC test firmware + timing report |
+| **7–8**: Sensing + PCB Layout/Fab | - Implement electrical sensing for V/I telemetry<br>- Complete PCB layout | **Energy sensing**: Divider/ADC scaling, shunt vs Hall, calibration, filtering, Coulomb counting<br>**PCB layout**: Stack-up, decoupling, IMU/baro placement, return paths, via stitching, ground segregation | - Live V/I telemetry vs DMM<br>- ERC/DRC cleanup, generate Gerbers/BOM/CPL | - Verified telemetry + calibration<br>- ERC/DRC clean layout<br>- Gerbers/BOM/CPL submitted |
+| **9–10**: Software Architecture + SMD Assembly | - Establish firmware architecture<br>- Train for SMD assembly | **Architecture**: Loop, sensor read, PID/mixer, arming; STM32 refactor; drivers; unit tests; CSV logging<br>**SMD process**: Solder paste, reflow, hot air, inspection | - Compile baseline firmware (STM32 dev board)<br>- Assemble practice board | - Compilable baseline<br>- IPC-style inspection checklist |
+| **11–12**: Assemble FC v1 + Bring-Up | - Assemble FC v1<br>- Electrical bring-up & verification | **Assembly**: Power, MCU, IMU, baro, connectors, SWD<br>**Bring-up**: Programming, current checks, rail verification, UART/GPIO<br>- I2C/SPI scans, IMU/baro reads | - Follow bring-up checklist<br>- Log issues & fixes | - FC v1 passes smoke test<br>- Bring-up logbook + patch list |
+| **13**: Sensor Calibration & Filtering | - Calibrate sensors<br>- Implement first-pass filtering | **Calibration**: Gyro bias, accel scale, baro offset, temp drift<br>**Filtering**: LPF/notch placeholders; store calibration constants | - Collect & validate datasets<br>- Persist + reload constants | - Calibration routine + constants<br>- Initial filter config |
+| **14–15**: Semester 1 Checkpoint Demo | - Demonstrate system integration with safety logic & telemetry | **Integration rehearsal**: Arming FSM (dry-run), ESC spin (no props), Live sensor streaming with VI monitoring | - Full ground test plan<br>- Record logs<br>- Verify timing/jitter | - Checkpoint demo completed<br>- Ground test report |
